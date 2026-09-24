@@ -1,7 +1,15 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { endpointsQuery } from "../src/util.ts";
-import { extractLocation, navigationGpsBody, navigationShareBody } from "../src/fleet.ts";
-import { fleetBase, isMockMode, region } from "../src/config.ts";
+import {
+  commandSucceeded,
+  createMockFleet,
+  extractLocation,
+  navigationGpsBody,
+  navigationShareBody,
+} from "../src/fleet.ts";
+import { authBase, authorizeUrl, fleetBase, isMockMode, region, wakeWaitMs } from "../src/config.ts";
+import { createMockPlaces } from "../src/geocode.ts";
+import { createDeps } from "../src/pullover.ts";
 
 const restore: Array<() => void> = [];
 
@@ -34,6 +42,30 @@ describe("config and Fleet helpers", () => {
     stash("TESLA_REGION", "eu");
     expect(region()).toBe("eu");
     expect(fleetBase()).toContain("prd.eu");
+    expect(authBase()).toContain("fleet-auth.prd.vn.cloud.tesla.com");
+    expect(authorizeUrl()).toBe("https://auth.tesla.com/oauth2/v3/authorize");
+  });
+
+  it("uses China OAuth hosts when TESLA_REGION=cn", () => {
+    stash("TESLA_FLEET_BASE", undefined);
+    stash("TESLA_REGION", "cn");
+    expect(region()).toBe("cn");
+    expect(fleetBase()).toContain("prd.cn");
+    expect(authBase()).toBe("https://auth.tesla.cn/oauth2/v3");
+    expect(authorizeUrl()).toBe("https://auth.tesla.cn/oauth2/v3/authorize");
+  });
+
+  it("keeps the wake wait when TESLA_MOCK=0", () => {
+    stash("TESLA_MOCK", "0");
+    expect(isMockMode()).toBe(false);
+    const deps = createDeps({ fleet: createMockFleet(), places: createMockPlaces() });
+    expect(deps.waitAfterWakeMs).toBe(wakeWaitMs());
+  });
+
+  it("treats Tesla command result:false as failure", () => {
+    expect(commandSucceeded({ response: { result: true, reason: "" } })).toBe(true);
+    expect(commandSucceeded({ response: { result: false, reason: "vehicle unavailable" } })).toBe(false);
+    expect(commandSucceeded({ result: false })).toBe(false);
   });
 
   it("extracts location from drive_state or location_data", () => {

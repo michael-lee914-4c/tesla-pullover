@@ -148,7 +148,8 @@ export function rankStops(
   }
   ranked.sort((a, b) => b.score - a.score);
   const ahead = ranked.filter((stop) => stop.ahead);
-  return ahead.length > 0 ? ahead.concat(ranked.filter((stop) => !stop.ahead)) : ranked;
+  // Behind-only results must not become pull-over targets; callers synthesize a shoulder ahead.
+  return ahead.length > 0 ? ahead.concat(ranked.filter((stop) => !stop.ahead)) : [];
 }
 
 export function classifyPlace(rawType: string | undefined): PlaceKind {

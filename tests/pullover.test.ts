@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createMockFleet } from "../src/fleet.ts";
 import { createMockPlaces } from "../src/geocode.ts";
 import { projectAhead } from "../src/geo.ts";
+import { fallbackShoulder, rankStops } from "../src/geo.ts";
 import { findSafeStop, locateVehicle, navigateTo, pullOver } from "../src/pullover.ts";
 
 describe("pull-over orchestration", () => {
@@ -59,6 +60,22 @@ describe("pull-over orchestration", () => {
       /still asleep|still /i,
     );
     expect(fleet.calls.filter((call) => call.method === "getLocation")).toHaveLength(0);
+  });
+
+  it("uses a shoulder ahead when every POI is behind the car", async () => {
+    const fleet = createMockFleet({ lat: 37.4, lon: -122.1, heading: 0 });
+    const origin = { lat: 37.4, lon: -122.1 };
+    const behind = projectAhead(origin, 180, 300);
+    const places = {
+      async findStops() {
+        return rankStops(origin, 0, [
+          { name: "Just passed rest area", address: "behind", kind: "rest_area", ...behind },
+        ]);
+      },
+    };
+    const result = await findSafeStop({ fleet, places, waitAfterWakeMs: 0 });
+    expect(result.stop.ahead).toBe(true);
+    expect(result.stop.name).toBe(fallbackShoulder(origin, 0, 400).name);
   });
 
   it("ranks injected ahead parking over a closer behind lot", async () => {

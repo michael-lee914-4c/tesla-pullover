@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
-import { AUTH, AUTHORIZE, SCOPES, cachePath, env, isMockMode, redirectUri, requiredEnv } from "./config.ts";
+import { SCOPES, authBase, authorizeUrl, cachePath, env, isMockMode, redirectUri, requiredEnv } from "./config.ts";
 
 export type TokenCache = {
   access_token: string;
@@ -36,7 +36,7 @@ function pkce(): { verifier: string; challenge: string } {
 }
 
 async function tokenRequest(body: Record<string, string>): Promise<TokenCache> {
-  const res = await fetch(`${AUTH}/token`, {
+  const res = await fetch(`${authBase()}/token`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams(body),
@@ -83,7 +83,7 @@ export async function beginLogin(): Promise<string> {
   const { verifier, challenge } = pkce();
   const state = b64url(randomBytes(16));
   writeSecret(pendingPath(), { verifier, state } satisfies PendingLogin);
-  const url = new URL(AUTHORIZE);
+  const url = new URL(authorizeUrl());
   url.searchParams.set("response_type", "code");
   url.searchParams.set("client_id", requiredEnv("TESLA_CLIENT_ID"));
   url.searchParams.set("redirect_uri", redirectUri());

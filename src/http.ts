@@ -92,6 +92,12 @@ export function createHttpServer(opts: HttpListen) {
       sessionIdGenerator: undefined,
       enableJsonResponse: true,
     });
+    const cleanup = () => {
+      void transport.close();
+      void mcp.close();
+    };
+    res.on("close", cleanup);
+    if (res.closed) cleanup();
 
     try {
       const body = await readJsonBody(req);
@@ -105,11 +111,6 @@ export function createHttpServer(opts: HttpListen) {
           id: null,
         });
       }
-    } finally {
-      res.on("close", () => {
-        void transport.close();
-        void mcp.close();
-      });
     }
   });
 }

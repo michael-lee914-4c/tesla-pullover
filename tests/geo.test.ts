@@ -62,6 +62,17 @@ describe("pull-over geometry", () => {
     );
   });
 
+  it("drops behind-only candidates so a shoulder ahead can be synthesized", () => {
+    const behind = projectAhead(origin, 270, 400);
+    const ranked = rankStops(
+      origin,
+      90,
+      [{ name: "Just passed rest area", address: "behind", kind: "rest_area", ...behind }],
+      { minM: 200, maxM: 2000 },
+    );
+    expect(ranked).toEqual([]);
+  });
+
   it("drops candidates beyond max distance and synthesizes a shoulder fallback", () => {
     const far = projectAhead(origin, 90, 5000);
     const ranked = rankStops(
