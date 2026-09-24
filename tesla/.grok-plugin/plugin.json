@@ -1,0 +1,16 @@
+{
+  "name": "tesla-pullover",
+  "version": "0.1.0",
+  "description": "Pull-over MCP for Grok: find a safe stop ahead and send Fleet navigation so FSD can drive there.",
+  "license": "MIT",
+  "keywords": [
+    "tesla",
+    "pullover",
+    "grok",
+    "grok-bot",
+    "fleet",
+    "navigation",
+    "mcp",
+    "fsd"
+  ]
+}

@@ -1,0 +1,10 @@
+node_modules/
+token-cache.json
+pkce-pending.json
+.env
+*.log
+dist/
+*.pem
+!env.example
+.DS_Store
+coverage/
