@@ -1,0 +1,32 @@
+{
+  "name": "tesla-pullover",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Tesla pull-over MCP: find a safe stop ahead and send navigation via Fleet API for Grok Bot and Cursor.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "tesla-pullover": "./src/index.ts",
+    "tesla-pullover-login": "./src/login.ts"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "start:http": "tsx src/index.ts --http",
+    "login": "tsx src/login.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0"
+  }
+}

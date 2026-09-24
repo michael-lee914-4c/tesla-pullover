@@ -1,0 +1,33 @@
+{
+  "name": "tesla-pullover",
+  "displayName": "Tesla pull-over",
+  "version": "0.1.0",
+  "description": "Find a safe stop ahead and send Fleet navigation so FSD can drive there. Streamable HTTP MCP for Grok Bot and Cursor.",
+  "license": "MIT",
+  "keywords": [
+    "tesla",
+    "pullover",
+    "grok",
+    "grok-bot",
+    "fleet",
+    "navigation",
+    "mcp",
+    "fsd"
+  ],
+  "variables": {
+    "type": "object",
+    "properties": {
+      "TESLA_MCP_URL": {
+        "type": "string",
+        "title": "Pull-over MCP URL",
+        "description": "Public HTTPS Streamable HTTP endpoint, including /mcp. Not localhost. Example: https://mcp.example.com/mcp"
+      },
+      "TESLA_MCP_TOKEN": {
+        "type": "string",
+        "title": "Pull-over MCP token",
+        "description": "Bearer token sent as Authorization on the HTTP MCP. Not a Tesla Fleet or Teslemetry token."
+      }
+    },
+    "required": ["TESLA_MCP_URL", "TESLA_MCP_TOKEN"]
+  }
+}
