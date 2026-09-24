@@ -82,14 +82,17 @@ describe("pull-over orchestration", () => {
     const fleet = createMockFleet({ lat: 37.4, lon: -122.1, heading: 0 });
     const origin = { lat: 37.4, lon: -122.1 };
     const behind = projectAhead(origin, 180, 300);
+    let findStopsCalls = 0;
     const places = {
       async findStops() {
+        findStopsCalls += 1;
         return rankStops(origin, 0, [
           { name: "Just passed rest area", address: "behind", kind: "rest_area", ...behind },
         ]);
       },
     };
     const result = await findSafeStop({ fleet, places, waitAfterWakeMs: 0 });
+    expect(findStopsCalls).toBe(1);
     expect(result.stop.ahead).toBe(true);
     expect(result.stop.name).toBe(fallbackShoulder(origin, 0, 400).name);
   });

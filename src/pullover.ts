@@ -65,16 +65,6 @@ export async function findSafeStop(
     maxDistanceM: maxM,
   });
   if (!ranked.some((stop) => stop.ahead)) {
-    ranked = (
-      await deps.places.findStops({
-        origin,
-        heading: origin.heading,
-        minDistanceM: 0,
-        maxDistanceM: maxM,
-      })
-    ).slice();
-  }
-  if (!ranked.some((stop) => stop.ahead)) {
     const shoulder = fallbackShoulder(origin, origin.heading, Math.min(400, maxM));
     ranked = [
       {
