@@ -18,7 +18,11 @@ export function createPulloverServer(overrides: Partial<AppDeps> = {}): McpServe
       vin: z.string().optional(),
       max_distance_m: z.number().int().positive().optional(),
     },
-    async ({ vin, max_distance_m }) => runTool(() => pullOver(deps, { vin, max_distance_m })),
+    async ({ vin, max_distance_m }) =>
+      runTool(
+        () => pullOver(deps, { vin, max_distance_m }),
+        (data) => (data as { navigation?: { ok?: boolean } }).navigation?.ok === false,
+      ),
   );
 
   server.tool(
@@ -42,7 +46,10 @@ export function createPulloverServer(overrides: Partial<AppDeps> = {}): McpServe
       order: z.number().int().positive().optional(),
     },
     async ({ vin, address, lat, lon, order }) =>
-      runTool(() => navigateTo(deps, { vin, address, lat, lon, order })),
+      runTool(
+        () => navigateTo(deps, { vin, address, lat, lon, order }),
+        (data) => (data as { navigation?: { ok?: boolean } }).navigation?.ok === false,
+      ),
   );
 
   server.tool("vehicles_list", "List vehicles on the signed-in Tesla account.", {}, async () =>

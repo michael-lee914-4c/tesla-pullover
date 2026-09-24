@@ -91,6 +91,12 @@ export function unwrapResponse(payload: FleetJson): Record<string, unknown> {
   return asRecord(response ?? payload);
 }
 
+/** HTTP 200 only means Tesla accepted the request; command success is `response.result`. */
+export function commandSucceeded(payload: FleetJson): boolean {
+  const response = unwrapResponse(payload);
+  return response.result !== false;
+}
+
 export function extractVehicleState(payload: FleetJson, fallbackVin: string): VehicleState {
   const response = asRecord(payload.response ?? payload);
   return {
@@ -174,7 +180,7 @@ export function createHttpFleet(): FleetClient {
             navigationGpsBody(input.lat!, input.lon!, order),
             { command: true },
           );
-          return { ok: true, method: "navigation_gps_request", order, response };
+          return { ok: commandSucceeded(response), method: "navigation_gps_request", order, response };
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
           if (!/invalid_command|404|not (supported|found)|command requires using the REST API/i.test(message)) {
@@ -187,7 +193,7 @@ export function createHttpFleet(): FleetClient {
             navigationShareBody(share),
             { command: true },
           );
-          return { ok: true, method: "navigation_request", order, response };
+          return { ok: commandSucceeded(response), method: "navigation_request", order, response };
         }
       }
       if (!input.address?.trim()) {
@@ -199,7 +205,7 @@ export function createHttpFleet(): FleetClient {
         navigationShareBody(input.address.trim()),
         { command: true },
       );
-      return { ok: true, method: "navigation_request", order, response };
+      return { ok: commandSucceeded(response), method: "navigation_request", order, response };
     },
   };
 }

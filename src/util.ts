@@ -43,9 +43,11 @@ export function toolText(data: unknown) {
   return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
 }
 
-export async function runTool(fn: () => Promise<unknown>) {
+export async function runTool(fn: () => Promise<unknown>, failed?: (data: unknown) => boolean) {
   try {
-    return toolText(await fn());
+    const data = await fn();
+    const body = toolText(data);
+    return failed?.(data) ? { ...body, isError: true } : body;
   } catch (error) {
     return {
       content: [{ type: "text" as const, text: error instanceof Error ? error.message : String(error) }],

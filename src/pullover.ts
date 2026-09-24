@@ -1,4 +1,4 @@
-import { defaultVin, maxDistanceM, minDistanceM, wakeWaitMs } from "./config.ts";
+import { defaultVin, isMockMode, maxDistanceM, minDistanceM, wakeWaitMs } from "./config.ts";
 import { createFleet, type CommandResult, type FleetClient, type VehicleLocation } from "./fleet.ts";
 import { createPlaces, type PlaceFinder } from "./geocode.ts";
 import { fallbackShoulder, type RankedStop } from "./geo.ts";
@@ -14,7 +14,7 @@ export function createDeps(overrides: Partial<AppDeps> = {}): AppDeps {
   return {
     fleet: overrides.fleet ?? createFleet(),
     places: overrides.places ?? createPlaces(),
-    waitAfterWakeMs: overrides.waitAfterWakeMs ?? (process.env.TESLA_MOCK ? 0 : wakeWaitMs()),
+    waitAfterWakeMs: overrides.waitAfterWakeMs ?? (isMockMode() ? 0 : wakeWaitMs()),
   };
 }
 
@@ -64,7 +64,7 @@ export async function findSafeStop(
     minDistanceM: minM,
     maxDistanceM: maxM,
   });
-  if (ranked.length === 0) {
+  if (!ranked.some((stop) => stop.ahead)) {
     ranked = (
       await deps.places.findStops({
         origin,
@@ -74,7 +74,7 @@ export async function findSafeStop(
       })
     ).slice();
   }
-  if (ranked.length === 0) {
+  if (!ranked.some((stop) => stop.ahead)) {
     const shoulder = fallbackShoulder(origin, origin.heading, Math.min(400, maxM));
     ranked = [
       {
@@ -87,7 +87,8 @@ export async function findSafeStop(
       },
     ];
   }
-  const [stop, ...alternatives] = ranked;
+  const ahead = ranked.filter((stop) => stop.ahead);
+  const [stop, ...alternatives] = ahead.length > 0 ? ahead : ranked;
   return { vin, origin, stop, alternatives: alternatives.slice(0, 4) };
 }
 

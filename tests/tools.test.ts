@@ -1,7 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { describe, expect, it } from "vitest";
-import { createMockFleet } from "../src/fleet.ts";
+import { commandSucceeded, createMockFleet } from "../src/fleet.ts";
 import { createMockPlaces } from "../src/geocode.ts";
 import { createPulloverServer } from "../src/server.ts";
 import { PULLOVER_TOOL_NAMES, PULLOVER_TOOLS } from "../src/tools.ts";
@@ -54,6 +54,33 @@ describe("MCP tool registration", () => {
       expect(fleet.calls.some((call) => call.method === "navigate")).toBe(true);
     } finally {
       await close();
+    }
+  });
+
+  it("marks pull_over as an error when Fleet returns result:false", async () => {
+    const fleet = createMockFleet();
+    fleet.navigate = async (input) => {
+      fleet.calls.push({ method: "navigate", vin: input.vin, extra: input });
+      const response = { response: { result: false, reason: "vehicle unavailable" } };
+      return {
+        ok: commandSucceeded(response),
+        method: "navigation_gps_request",
+        order: 1,
+        response,
+      };
+    };
+    const server = createPulloverServer({ fleet, places: createMockPlaces(), waitAfterWakeMs: 0 });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const client = new Client({ name: "pullover-fail-test", version: "0.0.0" });
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+    try {
+      const result = await client.callTool({ name: "pull_over", arguments: {} });
+      expect(result.isError).toBe(true);
+      const payload = JSON.parse(toolText(result));
+      expect(payload.navigation.ok).toBe(false);
+      expect(payload.stop.ahead).toBe(true);
+    } finally {
+      await client.close();
     }
   });
 

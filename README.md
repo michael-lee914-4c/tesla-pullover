@@ -46,7 +46,7 @@ Copy `env.example` to `.env`. Point `TESLA_CACHE_PATH` at a `0600` file **outsid
 | `TESLA_CLIENT_SECRET` | OAuth | Developer app secret |
 | `TESLA_REDIRECT_URI` | OAuth | Must match the app’s allowed redirect (`https://your.domain/callback`) |
 | `TESLA_AUDIENCE` | OAuth | Fleet origin for your region |
-| `TESLA_REGION` | no | `na` (default), `eu`, or `cn` |
+| `TESLA_REGION` | no | `na` (default), `eu`, or `cn`. `cn` uses `auth.tesla.cn` for login and token exchange |
 | `TESLA_FLEET_BASE` | no | Override Fleet origin |
 | `TESLA_CACHE_PATH` | no | Token cache (default `./token-cache.json`) |
 | `TESLA_ACCESS_TOKEN` | Teslemetry | Skip OAuth if you already have an owner token |
@@ -96,6 +96,8 @@ curl -s --data-urlencode grant_type=client_credentials \
 # then POST {"domain":"your.domain"} to $TESLA_AUDIENCE/api/1/partner_accounts
 # with Authorization: Bearer <partner access_token>
 ```
+
+China is a separate Tesla instance. Set `TESLA_REGION=cn` (and a China `TESLA_AUDIENCE`). `npm run login` then uses `https://auth.tesla.cn/oauth2/v3`. Partner tokens for China go to that host, not `fleet-auth.prd.vn.cloud.tesla.com`. You also need an app on [developer.tesla.cn](https://developer.tesla.cn/).
 
 6. User login (owner of the car):
 

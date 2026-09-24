@@ -92,11 +92,21 @@ export function createHttpServer(opts: HttpListen) {
       sessionIdGenerator: undefined,
       enableJsonResponse: true,
     });
+    let cleaned = false;
+    const cleanup = () => {
+      if (cleaned) return;
+      cleaned = true;
+      void transport.close();
+      void mcp.close();
+    };
+    res.on("close", cleanup);
+    if (res.closed || res.writableEnded) cleanup();
 
     try {
       const body = await readJsonBody(req);
       await mcp.connect(transport);
       await transport.handleRequest(req, res, body);
+      if (res.closed || res.writableEnded) cleanup();
     } catch (error) {
       if (!res.headersSent) {
         sendJson(res, 500, {
@@ -105,11 +115,7 @@ export function createHttpServer(opts: HttpListen) {
           id: null,
         });
       }
-    } finally {
-      res.on("close", () => {
-        void transport.close();
-        void mcp.close();
-      });
+      cleanup();
     }
   });
 }

@@ -1,5 +1,7 @@
-export const AUTH = "https://fleet-auth.prd.vn.cloud.tesla.com/oauth2/v3";
-export const AUTHORIZE = "https://auth.tesla.com/oauth2/v3/authorize";
+const AUTH_GLOBAL = "https://fleet-auth.prd.vn.cloud.tesla.com/oauth2/v3";
+const AUTHORIZE_GLOBAL = "https://auth.tesla.com/oauth2/v3/authorize";
+const AUTH_CN = "https://auth.tesla.cn/oauth2/v3";
+const AUTHORIZE_CN = "https://auth.tesla.cn/oauth2/v3/authorize";
 
 export const REGIONS = {
   na: "https://fleet-api.prd.na.vn.cloud.tesla.com",
@@ -39,6 +41,16 @@ export function region(): TeslaRegion {
   const raw = env("TESLA_REGION", "na").toLowerCase();
   if (raw === "eu" || raw === "cn" || raw === "na") return raw;
   return "na";
+}
+
+/** Token endpoint origin. China accounts must use auth.tesla.cn; NA/EU share the global Fleet auth host. */
+export function authBase(): string {
+  return region() === "cn" ? AUTH_CN : AUTH_GLOBAL;
+}
+
+/** Browser authorize URL. China login is on auth.tesla.cn; NA/EU use auth.tesla.com. */
+export function authorizeUrl(): string {
+  return region() === "cn" ? AUTHORIZE_CN : AUTHORIZE_GLOBAL;
 }
 
 export function fleetBase(): string {
